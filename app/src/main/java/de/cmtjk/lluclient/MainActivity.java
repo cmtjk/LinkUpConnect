@@ -26,21 +26,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         SharedPreferences preferences = getSharedPreferences("LLUClient", MODE_PRIVATE);
-        fillFieldsWith(preferences);
+        fillInputFieldsWith(preferences);
 
+        SwitchMaterial onOffSwitch = findViewById(R.id.activate);
+        configureSwitch(preferences, onOffSwitch);
+        updateApplicationStateIfServiceIsAlreadyRunning(onOffSwitch);
 
+        configureLogView();
+    }
+
+    private void configureLogView() {
         TextView logTextView = findViewById(R.id.log);
         configureDebugCheckBox(logTextView);
-
         ScrollView logScrollView = findViewById(R.id.logscroll);
-
         configureLocalBroadcaster(logTextView, logScrollView);
-
-        SwitchMaterial sw = findViewById(R.id.activate);
-
-        updateApplicationStateIfServiceIsAlreadyRunning(sw);
-
-        configureSwitch(preferences, sw);
     }
 
     private void updateApplicationStateIfServiceIsAlreadyRunning(SwitchMaterial sw) {
@@ -93,12 +92,16 @@ public class MainActivity extends AppCompatActivity {
                 new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
-                        if (((CheckBox) findViewById(R.id.debug)).isChecked()) {
+                        if (debugEnabled()) {
                             logTextView.append("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) + "] ");
                             logTextView.append(intent.getStringExtra("LOG"));
                             logTextView.append("\n");
                             logScrollView.fullScroll(ScrollView.FOCUS_DOWN);
                         }
+                    }
+
+                    private boolean debugEnabled() {
+                        return ((CheckBox) findViewById(R.id.debug)).isChecked();
                     }
                 }, new IntentFilter(LLUClientService.LOCAL_BROADCAST)
         );
@@ -113,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void fillFieldsWith(SharedPreferences preferences) {
+    private void fillInputFieldsWith(SharedPreferences preferences) {
         ((TextView) findViewById(R.id.email)).setText(preferences.getString(Properties.EMAIL.name(), ""));
         ((TextView) findViewById(R.id.password)).setText(preferences.getString(Properties.PASSWORD.name(), ""));
         ((TextView) findViewById(R.id.url)).setText(preferences.getString(Properties.URL.name(), "api-de.libreview.io"));

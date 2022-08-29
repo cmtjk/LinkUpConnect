@@ -78,14 +78,14 @@ public class LLUClientService extends Service {
                 long tokenExpiryDate = settings.getLong(Properties.TOKEN_VALIDITY.name(), Long.MIN_VALUE);
                 if (tokenExpiryDate < (System.currentTimeMillis() / 1000)) {
                     sendToActivitiesLogView("No valid Token found. Logging in...");
-                    JsonObjectRequest requestChain = createLoginRequest(queue, settings);
+                    JsonObjectRequest requestChain = createLoginRequestChain(queue, settings);
                     queue.add(requestChain);
                 } else {
                     sendToActivitiesLogView("Token still valid. Fetching connections...");
                     String connectionId = settings.getString(Properties.CONNECTION_ID.name(), "");
                     if (connectionId.isEmpty()) {
                         sendToActivitiesLogView("No valid ConnectionID found. Getting connections...");
-                        JsonObjectRequest requestChain = createConnectionRequest(queue, settings);
+                        JsonObjectRequest requestChain = createConnectionRequestChain(queue, settings);
                         queue.add(requestChain);
                     } else {
                         sendToActivitiesLogView("Using ConnectionID: " + connectionId);
@@ -108,27 +108,8 @@ public class LLUClientService extends Service {
                 Request.Method.GET,
                 "https://" + url + "/llu/connections/" + connectionId + "/graph",
                 new JSONObject(),
-                response -> {
-                    int bloodGlucoseValue = 0;
-                    int trendArrow = 0;
-                    String timestamp = "";
-                    try {
-                        bloodGlucoseValue = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getInt("ValueInMgPerDl");
-                        trendArrow = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getInt("TrendArrow");
-                        timestamp = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getString("Timestamp");
-                        sendToActivitiesLogView(response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").toString(2));
-                    } catch (JSONException e) {
-                        sendToActivitiesLogView("Getting measurement unsuccessfully: " + e.getMessage());
-                    }
-
-                    String formattedBloodGlucoseValue = formatBloodClucoseString(bloodGlucoseValue, trendArrow);
-                    String formattedTimeStamp = formatTimeStampString(timestamp);
-
-                    sendNotification(formattedBloodGlucoseValue, formattedTimeStamp);
-
-
-                },
-                LLUClientService.this::sendErrorToActivitiesLogView
+                this::handleGraphResponse,
+                this::sendErrorToActivitiesLogView
 
         ) {
             @Override
@@ -138,6 +119,25 @@ public class LLUClientService extends Service {
                 return header;
             }
         };
+    }
+
+    private void handleGraphResponse(JSONObject response) {
+        int bloodGlucoseValue = 0;
+        int trendArrow = 0;
+        String timestamp = "";
+        try {
+            bloodGlucoseValue = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getInt("ValueInMgPerDl");
+            trendArrow = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getInt("TrendArrow");
+            timestamp = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getString("Timestamp");
+            sendToActivitiesLogView(response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").toString(2));
+        } catch (JSONException e) {
+            sendToActivitiesLogView("Getting measurement failed: " + e.getMessage());
+        }
+
+        String formattedBloodGlucoseValue = formatBloodGlucoseString(bloodGlucoseValue, trendArrow);
+        String formattedTimeStamp = formatTimeStampString(timestamp);
+
+        sendNotification(formattedBloodGlucoseValue, formattedTimeStamp);
     }
 
     private void sendErrorToActivitiesLogView(VolleyError error) {
@@ -185,7 +185,7 @@ public class LLUClientService extends Service {
     }
 
     @NonNull
-    private String formatBloodClucoseString(int bloodGlucoseValue, int trendArrow) {
+    private String formatBloodGlucoseString(int bloodGlucoseValue, int trendArrow) {
         String arrow = "";
         switch (trendArrow) {
             case 1:
@@ -222,31 +222,15 @@ public class LLUClientService extends Service {
     }
 
     @NonNull
-    private JsonObjectRequest createConnectionRequest(RequestQueue queue, SharedPreferences settings) {
-        String url = settings.getString(Properties.URL.name(), "");
-        String token = settings.getString(Properties.TOKEN.name(), "");
+    private JsonObjectRequest createConnectionRequestChain(RequestQueue queue, SharedPreferences preferences) {
+        String url = preferences.getString(Properties.URL.name(), "");
+        String token = preferences.getString(Properties.TOKEN.name(), "");
         return new JsonObjectRequest(
                 Request.Method.GET,
                 "https://" + url + "/llu/connections",
                 new JSONObject(),
-                response -> {
-
-                    JSONArray connectionData;
-                    try {
-                        connectionData = response.getJSONArray("data");
-                        // todo: multiple connection ids not supported
-                        String connectionId = connectionData.getJSONObject(0).getString("patientId");
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.putString(Properties.CONNECTION_ID.name(), connectionId);
-                        editor.apply();
-                        JsonObjectRequest graphRequest = createGraphRequest(settings);
-                        queue.add(graphRequest);
-                    } catch (JSONException e) {
-                        sendToActivitiesLogView("Getting connections unsuccessfully: " + e.getMessage());
-                    }
-
-                },
-                LLUClientService.this::sendErrorToActivitiesLogView
+                response -> handleConnectionResponse(response, queue, preferences),
+                this::sendErrorToActivitiesLogView
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -257,39 +241,39 @@ public class LLUClientService extends Service {
         };
     }
 
-    @NonNull
-    private JsonObjectRequest createLoginRequest(RequestQueue queue, SharedPreferences settings) {
+    private void handleConnectionResponse(JSONObject response, RequestQueue queue, SharedPreferences preferences) {
+        try {
+            JSONArray connectionData = response.getJSONArray("data");
+            // todo: multiple connection ids not supported
+            String connectionId = connectionData.getJSONObject(0).getString("patientId");
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putString(Properties.CONNECTION_ID.name(), connectionId);
+            editor.apply();
+            JsonObjectRequest graphRequest = createGraphRequest(preferences);
+            queue.add(graphRequest);
+        } catch (JSONException e) {
+            sendToActivitiesLogView("Getting connections failed: " + e.getMessage());
+        }
+    }
 
-        String email = settings.getString(Properties.EMAIL.name(), "");
-        String password = settings.getString(Properties.PASSWORD.name(), "");
-        String url = settings.getString(Properties.URL.name(), "");
+    @NonNull
+    private JsonObjectRequest createLoginRequestChain(RequestQueue queue, SharedPreferences preferences) {
+
+        String email = preferences.getString(Properties.EMAIL.name(), "");
+        String password = preferences.getString(Properties.PASSWORD.name(), "");
+        String url = preferences.getString(Properties.URL.name(), "");
 
         JSONObject jsonRequest = null;
         try {
             jsonRequest = new JSONObject().put("email", email).put("password", password);
         } catch (JSONException e) {
-            e.printStackTrace();
+            sendToActivitiesLogView("Creating login request failed: " + e.getMessage());
         }
         return new JsonObjectRequest(
                 Request.Method.POST,
                 "https://" + url + "/llu/auth/login",
                 jsonRequest,
-                response -> {
-                    try {
-                        JSONObject data = response.getJSONObject("data");
-                        JSONObject authTicket = data.getJSONObject("authTicket");
-                        String token = authTicket.getString("token");
-                        long expiryDate = authTicket.getLong("expires");
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.putString(Properties.TOKEN.name(), token);
-                        editor.putLong(Properties.TOKEN_VALIDITY.name(), expiryDate);
-                        editor.apply();
-                        JsonObjectRequest connectionRequest = createConnectionRequest(queue, settings);
-                        queue.add(connectionRequest);
-                    } catch (JSONException e) {
-                        sendToActivitiesLogView("Login unsuccessfully: " + e.getMessage());
-                    }
-                },
+                response -> handleLoginResponse(response, queue, preferences),
                 LLUClientService.this::sendErrorToActivitiesLogView
         ) {
             @Override
@@ -297,6 +281,27 @@ public class LLUClientService extends Service {
                 return getDefaultHeaders();
             }
         };
+    }
+
+    private void handleLoginResponse(JSONObject response, RequestQueue queue, SharedPreferences preferences) {
+        try {
+            JSONObject data = response.getJSONObject("data");
+            JSONObject authTicket = data.getJSONObject("authTicket");
+            String token = authTicket.getString("token");
+            long expiryDate = authTicket.getLong("expires");
+            saveToken(preferences, token, expiryDate);
+            JsonObjectRequest connectionRequest = createConnectionRequestChain(queue, preferences);
+            queue.add(connectionRequest);
+        } catch (JSONException e) {
+            sendToActivitiesLogView("Login failed: " + e.getMessage());
+        }
+    }
+
+    private void saveToken(SharedPreferences preferences, String token, long expiryDate) {
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(Properties.TOKEN.name(), token);
+        editor.putLong(Properties.TOKEN_VALIDITY.name(), expiryDate);
+        editor.apply();
     }
 
     @Nullable
