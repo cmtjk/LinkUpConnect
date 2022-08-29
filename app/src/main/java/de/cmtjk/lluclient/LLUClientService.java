@@ -189,19 +189,19 @@ public class LLUClientService extends Service {
         String arrow = "";
         switch (trendArrow) {
             case 1:
-                arrow = "⬆";
+                arrow = "⬇";
                 break;
             case 2:
-                arrow = "↗";
+                arrow = "↘";
                 break;
             case 3:
                 arrow = "➡";
                 break;
             case 4:
-                arrow = "↘";
+                arrow = "↗";
                 break;
             case 5:
-                arrow = "⬇";
+                arrow = "⬆";
                 break;
         }
         return String.format(Locale.GERMANY, "%s %d mg/dl", arrow, bloodGlucoseValue);
