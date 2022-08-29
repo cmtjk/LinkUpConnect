@@ -94,7 +94,7 @@ public class LLUClientService extends Service {
                     }
                 }
             }
-        }, 0, intervalInSeconds * 1000);
+        }, 0, intervalInSeconds * 1000L);
 
         return START_NOT_STICKY;
     }
@@ -104,7 +104,7 @@ public class LLUClientService extends Service {
         String url = settings.getString(Properties.URL.name(), "");
         String token = settings.getString(Properties.TOKEN.name(), "");
         String connectionId = settings.getString(Properties.CONNECTION_ID.name(), "");
-        JsonObjectRequest glucoseDataRequest = new JsonObjectRequest(
+        return new JsonObjectRequest(
                 Request.Method.GET,
                 "https://" + url + "/llu/connections/" + connectionId + "/graph",
                 new JSONObject(),
@@ -128,7 +128,7 @@ public class LLUClientService extends Service {
 
 
                 },
-                this::sendErrorToActivitiesLogView
+                LLUClientService.this::sendErrorToActivitiesLogView
 
         ) {
             @Override
@@ -138,12 +138,14 @@ public class LLUClientService extends Service {
                 return header;
             }
         };
-        return glucoseDataRequest;
     }
 
     private void sendErrorToActivitiesLogView(VolleyError error) {
         Intent messageIntent = new Intent(LOCAL_BROADCAST);
-        messageIntent.putExtra("LOG", error.getMessage());
+        String errorType = error.toString();
+        String message = error.getMessage();
+        String formattedErrorMessage = String.format("Volley Error%nClass: %s%nMessage: %s", errorType, message);
+        messageIntent.putExtra("LOG", formattedErrorMessage);
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageIntent);
     }
 
@@ -179,8 +181,7 @@ public class LLUClientService extends Service {
             icon = "❗ ";
         }
         Duration duration = Duration.between(measurementDateTime, currentDateTime);
-        String formattedTimeStamp = String.format(Locale.GERMANY, "%s⏳ %sm ago (%s)", icon, duration.toMinutes(), notificationDateTime);
-        return formattedTimeStamp;
+        return String.format(Locale.GERMANY, "%s⏳ %sm ago (%s)", icon, duration.toMinutes(), notificationDateTime);
     }
 
     @NonNull
@@ -224,13 +225,13 @@ public class LLUClientService extends Service {
     private JsonObjectRequest createConnectionRequest(RequestQueue queue, SharedPreferences settings) {
         String url = settings.getString(Properties.URL.name(), "");
         String token = settings.getString(Properties.TOKEN.name(), "");
-        JsonObjectRequest connectionRequest = new JsonObjectRequest(
+        return new JsonObjectRequest(
                 Request.Method.GET,
                 "https://" + url + "/llu/connections",
                 new JSONObject(),
                 response -> {
 
-                    JSONArray connectionData = null;
+                    JSONArray connectionData;
                     try {
                         connectionData = response.getJSONArray("data");
                         // todo: multiple connection ids not supported
@@ -245,7 +246,7 @@ public class LLUClientService extends Service {
                     }
 
                 },
-                this::sendErrorToActivitiesLogView
+                LLUClientService.this::sendErrorToActivitiesLogView
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -254,7 +255,6 @@ public class LLUClientService extends Service {
                 return defaultHeaders;
             }
         };
-        return connectionRequest;
     }
 
     @NonNull
@@ -270,7 +270,7 @@ public class LLUClientService extends Service {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        JsonObjectRequest loginRequest = new JsonObjectRequest(
+        return new JsonObjectRequest(
                 Request.Method.POST,
                 "https://" + url + "/llu/auth/login",
                 jsonRequest,
@@ -290,14 +290,13 @@ public class LLUClientService extends Service {
                         sendToActivitiesLogView("Login unsuccessfully: " + e.getMessage());
                     }
                 },
-                this::sendErrorToActivitiesLogView
+                LLUClientService.this::sendErrorToActivitiesLogView
         ) {
             @Override
             public Map<String, String> getHeaders() {
                 return getDefaultHeaders();
             }
         };
-        return loginRequest;
     }
 
     @Nullable
