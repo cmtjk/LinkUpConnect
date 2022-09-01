@@ -126,18 +126,21 @@ public class LLUClientService extends Service {
         int trendArrow = 0;
         String timestamp = "";
         try {
-            bloodGlucoseValue = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getInt("ValueInMgPerDl");
-            trendArrow = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getInt("TrendArrow");
-            timestamp = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").getString("Timestamp");
-            sendToActivitiesLogView(response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement").toString(2));
+            JSONObject glucoseMeasurement = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement");
+            sendToActivitiesLogView(glucoseMeasurement.toString(2));
+
+            bloodGlucoseValue = glucoseMeasurement.getInt("ValueInMgPerDl");
+            trendArrow = glucoseMeasurement.getInt("TrendArrow");
+            timestamp = glucoseMeasurement.getString("Timestamp");
+
+            String formattedBloodGlucoseValue = formatBloodGlucoseString(bloodGlucoseValue, trendArrow);
+            String formattedTimeStamp = formatTimeStampString(timestamp);
+
+            sendNotification(formattedBloodGlucoseValue, formattedTimeStamp);
+
         } catch (JSONException e) {
             sendToActivitiesLogView("Getting measurement failed: " + e.getMessage());
         }
-
-        String formattedBloodGlucoseValue = formatBloodGlucoseString(bloodGlucoseValue, trendArrow);
-        String formattedTimeStamp = formatTimeStampString(timestamp);
-
-        sendNotification(formattedBloodGlucoseValue, formattedTimeStamp);
     }
 
     private void sendErrorToActivitiesLogView(VolleyError error) {
@@ -293,7 +296,7 @@ public class LLUClientService extends Service {
             JsonObjectRequest connectionRequest = createConnectionRequestChain(queue, preferences);
             queue.add(connectionRequest);
         } catch (JSONException e) {
-            sendToActivitiesLogView("Login failed: " + e.getMessage());
+            sendToActivitiesLogView("Login failed: " + response);
         }
     }
 
