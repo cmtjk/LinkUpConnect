@@ -8,5 +8,6 @@ public enum Properties {
     DEBUG,
     TOKEN,
     TOKEN_VALIDITY,
-    CONNECTION_ID
+    CONNECTION_ID,
+    INFORMATION_RED
 }
