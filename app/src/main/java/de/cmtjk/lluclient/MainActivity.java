@@ -6,10 +6,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -26,13 +28,56 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         SharedPreferences preferences = getSharedPreferences("LLUClient", MODE_PRIVATE);
+
         fillInputFieldsWith(preferences);
+        displayInformationDialog(preferences);
 
         SwitchMaterial onOffSwitch = findViewById(R.id.activate);
+
         configureSwitch(preferences, onOffSwitch);
         updateApplicationStateIfServiceIsAlreadyRunning(onOffSwitch);
+        configureResetButton(preferences, onOffSwitch);
 
         configureLogView();
+    }
+
+    private void configureResetButton(SharedPreferences preferences, SwitchMaterial onOffSwitch) {
+        Button resetButton = findViewById(R.id.reset);
+        resetButton.setOnClickListener(view -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Resetting application?");
+            builder.setPositiveButton("Yes", (dialog, id) -> {
+                onOffSwitch.setChecked(false);
+                resetPreferencesAndInputFields(preferences);
+                displayInformationDialog(preferences);
+            });
+            builder.setNegativeButton("No", (dialog, id) -> dialog.cancel());
+            AlertDialog dialog = builder.create();
+            dialog.show();
+
+        });
+    }
+
+    private void resetPreferencesAndInputFields(SharedPreferences preferences) {
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.clear();
+        editor.apply();
+        fillInputFieldsWith(preferences);
+    }
+
+    private void displayInformationDialog(SharedPreferences preferences) {
+        if (!preferences.getBoolean(Properties.INFORMATION_RED.name(), false)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("ℹ️ Information")
+                    .setMessage("Do not rely on values displayed by this app exclusively. Regularly check your glucose meter and enable alarms.");
+            builder.setPositiveButton("I understand", (dialog, id) -> {
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putBoolean(Properties.INFORMATION_RED.name(), true);
+                editor.apply();
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
     }
 
     private void configureLogView() {

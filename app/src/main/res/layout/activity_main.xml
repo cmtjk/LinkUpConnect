@@ -62,10 +62,12 @@
         android:layout_marginTop="24dp"
         android:minWidth="48dp"
         android:minHeight="48dp"
+        app:layout_constraintBottom_toTopOf="@+id/logscroll"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.299"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/intervall" />
+        app:layout_constraintTop_toBottomOf="@+id/intervall"
+        app:layout_constraintVertical_bias="0.0" />
 
     <EditText
         android:id="@+id/url"
@@ -85,16 +87,14 @@
     <ScrollView
         android:id="@+id/logscroll"
         android:layout_width="357dp"
-        android:layout_height="373dp"
-        android:layout_marginTop="24dp"
+        android:layout_height="316dp"
         android:fadeScrollbars="false"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/activate"
-        app:layout_constraintVertical_bias="0.061">
+        app:layout_constraintTop_toBottomOf="@+id/intervall"
+        app:layout_constraintVertical_bias="0.635">
 
         <TextView
             android:id="@+id/log"
@@ -113,5 +113,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/activate"
         app:layout_constraintVertical_bias="1.0" />
+
+    <Button
+        android:id="@+id/reset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="@string/reset"
+        app:layout_constraintBottom_toTopOf="@+id/logscroll"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.407"
+        app:layout_constraintStart_toEndOf="@+id/activate"
+        app:layout_constraintTop_toBottomOf="@+id/intervall"
+        app:layout_constraintVertical_bias="0.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

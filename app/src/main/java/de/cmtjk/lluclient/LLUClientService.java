@@ -39,9 +39,12 @@ public class LLUClientService extends Service {
 
     public static final String LOCAL_BROADCAST = LLUClientService.class.getName() + "LocationBroadcast";
     private static boolean SERVICE_IS_RUNNING = false;
+    private static final int PERMANENT_NOTIFICATION_ID = 1;
     private final Timer timer = new Timer();
     private final String channelId = "LLUClientForeGroundChannelId";
-    private final NotificationChannel serviceChannel = new NotificationChannel(channelId, "LLU Client Forground Notification Channel", NotificationManager.IMPORTANCE_HIGH);
+    private final NotificationChannel notificationChannel = new NotificationChannel(channelId, "LLU Client Foreground Notification Channel", NotificationManager.IMPORTANCE_HIGH);
+    private NotificationManager manager;
+    private NotificationCompat.Builder notificationBuilder;
 
     public static boolean isRunning() {
         return SERVICE_IS_RUNNING;
@@ -63,6 +66,7 @@ public class LLUClientService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        setUpNotification();
 
         SERVICE_IS_RUNNING = true;
         sendToActivitiesLogView("Service started");
@@ -99,6 +103,19 @@ public class LLUClientService extends Service {
         return START_NOT_STICKY;
     }
 
+    private void setUpNotification() {
+        manager = getSystemService(NotificationManager.class);
+        manager.createNotificationChannel(notificationChannel);
+
+        notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), channelId);
+        notificationBuilder.setSmallIcon(R.drawable.baseline_opacity_light_24dp)
+                .setShowWhen(false);
+        Intent intentMainLanding = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intentMainLanding, FLAG_IMMUTABLE);
+        notificationBuilder.setContentIntent(pendingIntent)
+                .setOnlyAlertOnce(true);
+    }
+
     @NonNull
     private JsonObjectRequest createGraphRequest(SharedPreferences settings) {
         String url = settings.getString(Properties.URL.name(), "");
@@ -109,7 +126,7 @@ public class LLUClientService extends Service {
                 "https://" + url + "/llu/connections/" + connectionId + "/graph",
                 new JSONObject(),
                 this::handleGraphResponse,
-                this::sendErrorToActivitiesLogView
+                this::sendErrorToActivitiesLogViewAndNotification
 
         ) {
             @Override
@@ -122,16 +139,13 @@ public class LLUClientService extends Service {
     }
 
     private void handleGraphResponse(JSONObject response) {
-        int bloodGlucoseValue = 0;
-        int trendArrow = 0;
-        String timestamp = "";
         try {
             JSONObject glucoseMeasurement = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement");
             sendToActivitiesLogView(glucoseMeasurement.toString(2));
 
-            bloodGlucoseValue = glucoseMeasurement.getInt("ValueInMgPerDl");
-            trendArrow = glucoseMeasurement.getInt("TrendArrow");
-            timestamp = glucoseMeasurement.getString("Timestamp");
+            int bloodGlucoseValue = glucoseMeasurement.getInt("ValueInMgPerDl");
+            int trendArrow = glucoseMeasurement.getInt("TrendArrow");
+            String timestamp = glucoseMeasurement.getString("Timestamp");
 
             String formattedBloodGlucoseValue = formatBloodGlucoseString(bloodGlucoseValue, trendArrow);
             String formattedTimeStamp = formatTimeStampString(timestamp);
@@ -143,7 +157,12 @@ public class LLUClientService extends Service {
         }
     }
 
-    private void sendErrorToActivitiesLogView(VolleyError error) {
+    private void sendErrorToActivitiesLogViewAndNotification(VolleyError error) {
+        sendToActivitiesLogView(error);
+        displayConnectionErrorInNotification();
+    }
+
+    private void sendToActivitiesLogView(VolleyError error) {
         Intent messageIntent = new Intent(LOCAL_BROADCAST);
         String errorType = error.toString();
         String message = error.getMessage();
@@ -152,24 +171,23 @@ public class LLUClientService extends Service {
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(messageIntent);
     }
 
-    private void sendNotification(String formattedBloodGlucoseValue, String formattedTimeStamp) {
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        manager.createNotificationChannel(serviceChannel);
+    private void displayConnectionErrorInNotification() {
+        Notification notification = notificationBuilder.setContentTitle("🚫 Connection error")
+                .setContentText("Check your internet connection and debug log.")
+                .build();
+        manager.notify(PERMANENT_NOTIFICATION_ID, notification);
+    }
 
-        Intent intentMainLanding = new Intent(getApplicationContext(), MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intentMainLanding, FLAG_IMMUTABLE);
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), channelId)
-                .setSmallIcon(R.drawable.baseline_opacity_light_24dp)
-                .setContentTitle(formattedBloodGlucoseValue)
+    private void sendNotification(String formattedBloodGlucoseValue, String formattedTimeStamp) {
+
+        Notification notification = notificationBuilder.setContentTitle(formattedBloodGlucoseValue)
                 .setContentText(formattedTimeStamp)
-                .setContentIntent(pendingIntent)
-                .setOnlyAlertOnce(true);
-        Notification notification = notificationBuilder.build();
+                .build();
 
         // watch
-        manager.notify(1, notification);
+        manager.notify(PERMANENT_NOTIFICATION_ID, notification);
         // phone
-        startForeground(1, notification);
+        startForeground(PERMANENT_NOTIFICATION_ID, notification);
     }
 
     @NonNull
@@ -177,11 +195,11 @@ public class LLUClientService extends Service {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("M/d/y h:m:s a", Locale.US);
         LocalDateTime measurementDateTime = LocalDateTime.parse(timestamp, dateTimeFormatter);
         LocalDateTime currentDateTime = LocalDateTime.now();
-        DateTimeFormatter notificationDateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm 'Uhr,' MM.dd.yyyy");
+        DateTimeFormatter notificationDateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm',' MM.dd.yyyy");
         String notificationDateTime = measurementDateTime.format(notificationDateTimeFormatter);
         String icon = "";
         if (currentDateTime.minusMinutes(5).isAfter(measurementDateTime)) {
-            icon = "❗ ";
+            icon = "❗";
         }
         Duration duration = Duration.between(measurementDateTime, currentDateTime);
         return String.format(Locale.GERMANY, "%s⏳ %sm ago (%s)", icon, duration.toMinutes(), notificationDateTime);
@@ -233,7 +251,7 @@ public class LLUClientService extends Service {
                 "https://" + url + "/llu/connections",
                 new JSONObject(),
                 response -> handleConnectionResponse(response, queue, preferences),
-                this::sendErrorToActivitiesLogView
+                this::sendErrorToActivitiesLogViewAndNotification
         ) {
             @Override
             public Map<String, String> getHeaders() {
@@ -277,7 +295,7 @@ public class LLUClientService extends Service {
                 "https://" + url + "/llu/auth/login",
                 jsonRequest,
                 response -> handleLoginResponse(response, queue, preferences),
-                LLUClientService.this::sendErrorToActivitiesLogView
+                this::sendErrorToActivitiesLogViewAndNotification
         ) {
             @Override
             public Map<String, String> getHeaders() {

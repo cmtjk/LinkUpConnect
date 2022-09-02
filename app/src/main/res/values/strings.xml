@@ -5,4 +5,5 @@
     <string name="default_url">api-de.libreview.io</string>
     <string name="default_intervall">60</string>
     <string name="debug">Debug</string>
+    <string name="reset">Reset</string>
 </resources>
