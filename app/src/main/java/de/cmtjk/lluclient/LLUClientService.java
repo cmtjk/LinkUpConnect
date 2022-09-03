@@ -204,7 +204,7 @@ public class LLUClientService extends Service {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("M/d/y h:m:s a", Locale.US);
         LocalDateTime measurementDateTime = LocalDateTime.parse(timestamp, dateTimeFormatter);
         LocalDateTime currentDateTime = LocalDateTime.now();
-        DateTimeFormatter notificationDateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm',' MM.dd.yyyy");
+        DateTimeFormatter notificationDateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm',' dd.MM.yyyy");
         String notificationDateTime = measurementDateTime.format(notificationDateTimeFormatter);
         String icon = "";
         if (currentDateTime.minusMinutes(5).isAfter(measurementDateTime)) {
