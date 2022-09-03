@@ -1,10 +1,13 @@
+**⚠️This implementation does not provide any integration with xDrip or other apps. In only displays the current glucose level fetched from LibreView as permanent notification on the lock screen.**
+
 # LLU Client
+
 [Download ⬇️](https://github.com/cmtjk/LLUClient/releases)
 
 Displays your current blood glucose level fetched from LibreView as notification: status bar, lock screen, smartwatch (partially).
 
 ## Attributions
-- Special thanks to [Nechoj](https://insulinclub.de/core/index.php?user/46518-nechoj/)
+- Special thanks to [Nechoj](https://insulinclub.de/core/index.php?user/46518-nechoj/) for the inspiration
 - ![](img/blood_sugar_icon.png)[Diabetes icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/diabetes "diabetes icons")
 
 ## Requirements
@@ -42,5 +45,5 @@ If something doesn't work remember to enable debug logging. Unfortunately, it's 
 
 
 ## Known issues
-- If you have more than one blood glucose meter only the data of the first one provided by the API is shown. This is sufficient for me since I only use the FreeStyle Libre 3 app.
+- If your LibreView account is connected to more than one patient only one is shown. This is sufficient for me since I only need notifications about myself.
 - And maybe more for users with a different setup. Contact me. Maybe I can help.
