@@ -108,7 +108,7 @@ public class LLUClientService extends Service {
         manager.createNotificationChannel(notificationChannel);
 
         notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), channelId);
-        notificationBuilder.setSmallIcon(R.drawable.blood_sugar)
+        notificationBuilder.setSmallIcon(R.drawable.blood_sugar_icon)
                 .setShowWhen(false);
         Intent intentMainLanding = new Intent(getApplicationContext(), MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intentMainLanding, FLAG_IMMUTABLE);

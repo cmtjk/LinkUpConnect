@@ -1,10 +1,11 @@
 # LLU Client
+[Download ⬇️](https://github.com/cmtjk/LLUClient/releases)
 
-Displays your current blood glucose level fetched from LibreView as notification: Status bar, lock screen, smartwatch (partially).
+Displays your current blood glucose level fetched from LibreView as notification: status bar, lock screen, smartwatch (partially).
 
 ## Attributions
-- Special thanks to [Nechoj](https://insulinclub.de/core/index.php?user/46518-nechoj/).
-- [Diabetes icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/diabetes "diabetes icons")
+- Special thanks to [Nechoj](https://insulinclub.de/core/index.php?user/46518-nechoj/)
+- ![](img/blood_sugar_icon.png)[Diabetes icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/diabetes "diabetes icons")
 
 ## Requirements
 - LibreView Account (invite yourself in FreeStyle Libre app: https://www.librelinkup.com/articles/getting-started)
@@ -15,6 +16,8 @@ Want mmol/l? Enable debug and tell me how your payload looks like. Then I can im
 
 ## How it works
 The application directly queries the LibreView API every 60 seconds (default) to get current blood glucose levels. Hence it requires an internet connection to work.
+
+![](img/layout_view.png)
 
 The notification will show your current blood glucose level, the trend arrow, the time passed since the last measurement and its timestamp.
 

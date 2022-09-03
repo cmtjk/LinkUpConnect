@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
@@ -62,12 +61,10 @@
         android:layout_marginTop="24dp"
         android:minWidth="48dp"
         android:minHeight="48dp"
-        app:layout_constraintBottom_toTopOf="@+id/logscroll"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.299"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/intervall"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/intervall" />
 
     <EditText
         android:id="@+id/url"
@@ -86,15 +83,14 @@
 
     <ScrollView
         android:id="@+id/logscroll"
-        android:layout_width="357dp"
-        android:layout_height="316dp"
+        android:layout_width="361dp"
+        android:layout_height="313dp"
+        android:layout_marginTop="4dp"
         android:fadeScrollbars="false"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/intervall"
-        app:layout_constraintVertical_bias="0.635">
+        app:layout_constraintTop_toBottomOf="@+id/debug">
 
         <TextView
             android:id="@+id/log"
@@ -106,13 +102,12 @@
         android:id="@+id/debug"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:text="@string/debug"
-        app:layout_constraintBottom_toTopOf="@+id/logscroll"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.873"
+        app:layout_constraintHorizontal_bias="0.926"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/activate"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintTop_toBottomOf="@+id/reset" />
 
     <Button
         android:id="@+id/reset"
@@ -120,11 +115,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="@string/reset"
-        app:layout_constraintBottom_toTopOf="@+id/logscroll"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.407"
         app:layout_constraintStart_toEndOf="@+id/activate"
-        app:layout_constraintTop_toBottomOf="@+id/intervall"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/intervall" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

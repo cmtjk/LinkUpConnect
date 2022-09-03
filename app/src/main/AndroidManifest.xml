@@ -11,9 +11,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/blood_sugar"
+        android:icon="@drawable/blood_sugar_icon"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/blood_sugar"
+        android:roundIcon="@drawable/blood_sugar_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.LLUClient"
         tools:targetApi="31">
