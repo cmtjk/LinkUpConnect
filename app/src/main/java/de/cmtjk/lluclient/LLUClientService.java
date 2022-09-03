@@ -81,22 +81,31 @@ public class LLUClientService extends Service {
 
                 long tokenExpiryDate = settings.getLong(Properties.TOKEN_VALIDITY.name(), Long.MIN_VALUE);
                 if (tokenExpiryDate < (System.currentTimeMillis() / 1000)) {
-                    sendToActivitiesLogView("No valid Token found. Logging in...");
+                    sendToActivitiesLogView("No valid token found. Logging in...");
                     JsonObjectRequest requestChain = createLoginRequestChain(queue, settings);
                     queue.add(requestChain);
                 } else {
-                    sendToActivitiesLogView("Token still valid. Fetching connections...");
+                    sendToActivitiesLogView("Token still valid");
                     String connectionId = settings.getString(Properties.CONNECTION_ID.name(), "");
                     if (connectionId.isEmpty()) {
-                        sendToActivitiesLogView("No valid ConnectionID found. Getting connections...");
+                        sendToActivitiesLogView("No valid connection ID found. Getting connections...");
                         JsonObjectRequest requestChain = createConnectionRequestChain(queue, settings);
                         queue.add(requestChain);
                     } else {
-                        sendToActivitiesLogView("Using ConnectionID: " + connectionId);
+                        String shortenedConnectionId = obfuscateConnectionId(connectionId);
+                        sendToActivitiesLogView("Using stored connection ID: " + shortenedConnectionId);
                         JsonObjectRequest graphRequest = createGraphRequest(settings);
                         queue.add(graphRequest);
                     }
                 }
+            }
+
+            private String obfuscateConnectionId(String connectionId) {
+                String[] connectionIdParts = connectionId.split("-");
+                if (connectionIdParts.length > 1) {
+                    return connectionIdParts[0] + "-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
+                }
+                return "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
             }
         }, 0, intervalInSeconds * 1000L);
 
