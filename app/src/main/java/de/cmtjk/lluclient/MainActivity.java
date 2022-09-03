@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         Button resetButton = findViewById(R.id.reset);
         resetButton.setOnClickListener(view -> {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Resetting application?");
+            builder.setTitle("Reset application?");
             builder.setPositiveButton("Yes", (dialog, id) -> {
                 onOffSwitch.setChecked(false);
                 resetPreferencesAndInputFields(preferences);

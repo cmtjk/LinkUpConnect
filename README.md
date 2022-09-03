@@ -2,7 +2,9 @@
 
 Displays your current blood glucose level fetched from LibreView as notification: Status bar, lock screen, smartwatch (partially).
 
-Special thanks to [Nechoj](https://insulinclub.de/core/index.php?user/46518-nechoj/).
+## Attributions
+- Special thanks to [Nechoj](https://insulinclub.de/core/index.php?user/46518-nechoj/).
+- [Diabetes icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/diabetes "diabetes icons")
 
 ## Requirements
 - LibreView Account (invite yourself in FreeStyle Libre app: https://www.librelinkup.com/articles/getting-started)

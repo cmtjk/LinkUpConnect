@@ -108,7 +108,7 @@ public class LLUClientService extends Service {
         manager.createNotificationChannel(notificationChannel);
 
         notificationBuilder = new NotificationCompat.Builder(getApplicationContext(), channelId);
-        notificationBuilder.setSmallIcon(R.drawable.baseline_opacity_light_24dp)
+        notificationBuilder.setSmallIcon(R.drawable.blood_sugar)
                 .setShowWhen(false);
         Intent intentMainLanding = new Intent(getApplicationContext(), MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intentMainLanding, FLAG_IMMUTABLE);
@@ -195,7 +195,7 @@ public class LLUClientService extends Service {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("M/d/y h:m:s a", Locale.US);
         LocalDateTime measurementDateTime = LocalDateTime.parse(timestamp, dateTimeFormatter);
         LocalDateTime currentDateTime = LocalDateTime.now();
-        DateTimeFormatter notificationDateTimeFormatter = DateTimeFormatter.ofPattern("hh:mm',' MM.dd.yyyy");
+        DateTimeFormatter notificationDateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm',' MM.dd.yyyy");
         String notificationDateTime = measurementDateTime.format(notificationDateTimeFormatter);
         String icon = "";
         if (currentDateTime.minusMinutes(5).isAfter(measurementDateTime)) {
