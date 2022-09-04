@@ -41,8 +41,9 @@
 
     <EditText
         android:id="@+id/intervall"
-        android:layout_width="296dp"
+        android:layout_width="81dp"
         android:layout_height="48dp"
+        android:layout_marginStart="64dp"
         android:layout_marginTop="16dp"
         android:autofillHints=""
         android:ems="10"
@@ -50,21 +51,8 @@
         android:minHeight="48dp"
         android:singleLine="true"
         android:text="@string/default_intervall"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/url" />
-
-    <com.google.android.material.switchmaterial.SwitchMaterial
-        android:id="@+id/activate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:minWidth="48dp"
-        android:minHeight="48dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.299"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/intervall" />
 
     <EditText
         android:id="@+id/url"
@@ -83,12 +71,13 @@
 
     <ScrollView
         android:id="@+id/logscroll"
-        android:layout_width="361dp"
-        android:layout_height="313dp"
-        android:layout_marginTop="4dp"
+        android:layout_width="373dp"
+        android:layout_height="265dp"
+        android:layout_marginTop="16dp"
         android:fadeScrollbars="false"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.488"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/debug">
 
@@ -102,22 +91,54 @@
         android:id="@+id/debug"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="16dp"
         android:text="@string/debug"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.926"
+        app:layout_constraintHorizontal_bias="0.235"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/reset" />
+        app:layout_constraintTop_toBottomOf="@+id/activate" />
 
     <Button
         android:id="@+id/reset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="112dp"
         android:text="@string/reset"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.407"
-        app:layout_constraintStart_toEndOf="@+id/activate"
+        app:layout_constraintTop_toBottomOf="@+id/forward_to_xdrip" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/activate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="12dp"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/intervall" />
+
+    <CheckBox
+        android:id="@+id/forward_to_xdrip"
+        android:layout_width="173dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="72dp"
+        android:text="@string/forward_to_xdrip"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/notification_enabled" />
+
+    <CheckBox
+        android:id="@+id/notification_enabled"
+        android:layout_width="189dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="56dp"
+        android:text="@string/notification_enabled"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.972"
+        app:layout_constraintStart_toEndOf="@+id/intervall"
+        app:layout_constraintTop_toBottomOf="@+id/url" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

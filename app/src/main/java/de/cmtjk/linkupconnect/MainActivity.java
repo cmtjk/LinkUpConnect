@@ -32,13 +32,27 @@ public class MainActivity extends AppCompatActivity {
         fillInputFieldsWith(preferences);
         displayInformationDialog(preferences);
 
-        SwitchMaterial onOffSwitch = findViewById(R.id.activate);
+        configureXDripCheckBox();
 
+        SwitchMaterial onOffSwitch = findViewById(R.id.activate);
         configureSwitch(preferences, onOffSwitch);
         updateApplicationStateIfServiceIsAlreadyRunning(onOffSwitch);
         configureResetButton(preferences, onOffSwitch);
 
         configureLogView();
+    }
+
+    private void configureXDripCheckBox() {
+        ((CheckBox) findViewById(R.id.forward_to_xdrip)).setOnCheckedChangeListener(((compoundButton, turnedOn) -> {
+            if (turnedOn) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("ℹ️ Information")
+                        .setMessage("Choose 'Libre2 (patched App)' as source in xDrip.")
+                        .setPositiveButton("Ok", (dialog, id) -> {});
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        }));
     }
 
     private void configureResetButton(SharedPreferences preferences, SwitchMaterial onOffSwitch) {
@@ -66,13 +80,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void displayInformationDialog(SharedPreferences preferences) {
-        if (!preferences.getBoolean(Properties.INFORMATION_RED.name(), false)) {
+        if (!preferences.getBoolean(Preferences.INFORMATION_RED.name(), false)) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("ℹ️ Information")
                     .setMessage("Do not rely on values displayed by this app exclusively. Regularly check your glucose meter and enable alarms.");
             builder.setPositiveButton("I understand", (dialog, id) -> {
                 SharedPreferences.Editor editor = preferences.edit();
-                editor.putBoolean(Properties.INFORMATION_RED.name(), true);
+                editor.putBoolean(Preferences.INFORMATION_RED.name(), true);
                 editor.apply();
             });
             AlertDialog dialog = builder.create();
@@ -99,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.password).setEnabled(false);
         findViewById(R.id.url).setEnabled(false);
         findViewById(R.id.intervall).setEnabled(false);
+        findViewById(R.id.notification_enabled).setEnabled(false);
+        findViewById(R.id.forward_to_xdrip).setEnabled(false);
     }
 
     private void configureSwitch(SharedPreferences preferences, SwitchMaterial sw) {
@@ -117,11 +133,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void savePreferences(SharedPreferences preferences) {
         SharedPreferences.Editor settingsEditor = preferences.edit();
-        settingsEditor.putString(Properties.EMAIL.name(), ((TextView) findViewById(R.id.email)).getText().toString());
-        settingsEditor.putString(Properties.PASSWORD.name(), ((TextView) findViewById(R.id.password)).getText().toString());
-        settingsEditor.putString(Properties.URL.name(), ((TextView) findViewById(R.id.url)).getText().toString());
-        settingsEditor.putString(Properties.INTERVAL.name(), ((TextView) findViewById(R.id.intervall)).getText().toString());
-        settingsEditor.putBoolean(Properties.DEBUG.name(), ((CheckBox) findViewById(R.id.debug)).isChecked());
+        settingsEditor.putString(Preferences.EMAIL.name(), ((TextView) findViewById(R.id.email)).getText().toString());
+        settingsEditor.putString(Preferences.PASSWORD.name(), ((TextView) findViewById(R.id.password)).getText().toString());
+        settingsEditor.putString(Preferences.URL.name(), ((TextView) findViewById(R.id.url)).getText().toString());
+        settingsEditor.putString(Preferences.INTERVAL.name(), ((TextView) findViewById(R.id.intervall)).getText().toString());
+        settingsEditor.putBoolean(Preferences.PERMANENT_NOTIFICATION_ENABLED.name(), ((CheckBox) findViewById(R.id.notification_enabled)).isChecked());
+        settingsEditor.putBoolean(Preferences.FORWARD_TO_XDRIP.name(), ((CheckBox) findViewById(R.id.forward_to_xdrip)).isChecked());
         settingsEditor.apply();
     }
 
@@ -130,6 +147,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.password).setEnabled(true);
         findViewById(R.id.url).setEnabled(true);
         findViewById(R.id.intervall).setEnabled(true);
+        findViewById(R.id.notification_enabled).setEnabled(true);
+        findViewById(R.id.forward_to_xdrip).setEnabled(true);
     }
 
     private void configureLocalBroadcaster(TextView logTextView, ScrollView logScrollView) {
@@ -162,10 +181,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fillInputFieldsWith(SharedPreferences preferences) {
-        ((TextView) findViewById(R.id.email)).setText(preferences.getString(Properties.EMAIL.name(), ""));
-        ((TextView) findViewById(R.id.password)).setText(preferences.getString(Properties.PASSWORD.name(), ""));
-        ((TextView) findViewById(R.id.url)).setText(preferences.getString(Properties.URL.name(), "api-de.libreview.io"));
-        ((TextView) findViewById(R.id.intervall)).setText(preferences.getString(Properties.INTERVAL.name(), "60"));
-        ((CheckBox) findViewById(R.id.debug)).setChecked(preferences.getBoolean(Properties.DEBUG.name(), false));
+        ((TextView) findViewById(R.id.email)).setText(preferences.getString(Preferences.EMAIL.name(), ""));
+        ((TextView) findViewById(R.id.password)).setText(preferences.getString(Preferences.PASSWORD.name(), ""));
+        ((TextView) findViewById(R.id.url)).setText(preferences.getString(Preferences.URL.name(), "api-de.libreview.io"));
+        ((TextView) findViewById(R.id.intervall)).setText(preferences.getString(Preferences.INTERVAL.name(), "60"));
+        ((CheckBox) findViewById(R.id.debug)).setChecked(preferences.getBoolean(Preferences.DEBUG.name(), false));
+        ((CheckBox) findViewById(R.id.notification_enabled)).setChecked(preferences.getBoolean(Preferences.PERMANENT_NOTIFICATION_ENABLED.name(), true));
+        ((CheckBox) findViewById(R.id.forward_to_xdrip)).setChecked(preferences.getBoolean(Preferences.FORWARD_TO_XDRIP.name(), false));
     }
 }

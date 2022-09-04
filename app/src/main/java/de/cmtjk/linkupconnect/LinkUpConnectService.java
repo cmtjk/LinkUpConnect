@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.os.IBinder;
 
 import androidx.annotation.NonNull;
@@ -28,6 +29,7 @@ import org.json.JSONObject;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
@@ -72,21 +74,21 @@ public class LinkUpConnectService extends Service {
         sendToActivitiesLogView("Service started");
 
         SharedPreferences settings = getSharedPreferences("LinkUpConnect", MODE_PRIVATE);
-        int intervalInSeconds = Integer.parseInt(settings.getString(Properties.INTERVAL.name(), "60"));
+        int intervalInSeconds = Integer.parseInt(settings.getString(Preferences.INTERVAL.name(), "60"));
 
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
 
-                long tokenExpiryDate = settings.getLong(Properties.TOKEN_VALIDITY.name(), Long.MIN_VALUE);
+                long tokenExpiryDate = settings.getLong(Preferences.TOKEN_VALIDITY.name(), Long.MIN_VALUE);
                 if (tokenExpiryDate < (System.currentTimeMillis() / 1000)) {
                     sendToActivitiesLogView("No valid token found. Logging in...");
                     JsonObjectRequest requestChain = createLoginRequestChain(queue, settings);
                     queue.add(requestChain);
                 } else {
                     sendToActivitiesLogView("Token still valid");
-                    String connectionId = settings.getString(Properties.CONNECTION_ID.name(), "");
+                    String connectionId = settings.getString(Preferences.CONNECTION_ID.name(), "");
                     if (connectionId.isEmpty()) {
                         sendToActivitiesLogView("No valid connection ID found. Getting connections...");
                         JsonObjectRequest requestChain = createConnectionRequestChain(queue, settings);
@@ -127,14 +129,16 @@ public class LinkUpConnectService extends Service {
 
     @NonNull
     private JsonObjectRequest createGraphRequest(SharedPreferences settings) {
-        String url = settings.getString(Properties.URL.name(), "");
-        String token = settings.getString(Properties.TOKEN.name(), "");
-        String connectionId = settings.getString(Properties.CONNECTION_ID.name(), "");
+        String url = settings.getString(Preferences.URL.name(), "");
+        String token = settings.getString(Preferences.TOKEN.name(), "");
+        String connectionId = settings.getString(Preferences.CONNECTION_ID.name(), "");
+        boolean notificationEnabled = settings.getBoolean(Preferences.PERMANENT_NOTIFICATION_ENABLED.name(), true);
+        boolean xDripEnabled = settings.getBoolean(Preferences.FORWARD_TO_XDRIP.name(), false);
         return new JsonObjectRequest(
                 Request.Method.GET,
                 "https://" + url + "/llu/connections/" + connectionId + "/graph",
                 new JSONObject(),
-                this::handleGraphResponse,
+                response -> handleGraphResponse(response, xDripEnabled, notificationEnabled),
                 this::sendErrorToActivitiesLogViewAndNotification
 
         ) {
@@ -147,23 +151,51 @@ public class LinkUpConnectService extends Service {
         };
     }
 
-    private void handleGraphResponse(JSONObject response) {
+    private void handleGraphResponse(JSONObject response, boolean xDripEnabled, boolean notificationEnabled) {
         try {
-            JSONObject glucoseMeasurement = response.getJSONObject("data").getJSONObject("connection").getJSONObject("glucoseMeasurement");
+            JSONObject connection = response.getJSONObject("data").getJSONObject("connection");
+            JSONObject glucoseMeasurement = connection.getJSONObject("glucoseMeasurement");
             sendToActivitiesLogView(glucoseMeasurement.toString(2));
 
+            String sensorSerial = connection.isNull("sensor") ? "unknown" : connection.getString("sensor");
             int bloodGlucoseValue = glucoseMeasurement.getInt("ValueInMgPerDl");
             int trendArrow = glucoseMeasurement.getInt("TrendArrow");
             String timestamp = glucoseMeasurement.getString("Timestamp");
+            LocalDateTime measurementDateTime = parseTimeStamp(timestamp);
 
             String formattedBloodGlucoseValue = formatBloodGlucoseString(bloodGlucoseValue, trendArrow);
-            String formattedTimeStamp = formatTimeStampString(timestamp);
+            String formattedTimeStamp = formatTimeStampString(measurementDateTime);
 
-            sendNotification(formattedBloodGlucoseValue, formattedTimeStamp);
+            if (notificationEnabled) {
+                sendNotification(formattedBloodGlucoseValue, formattedTimeStamp);
+            }
+
+            if (xDripEnabled) {
+                forwardToXDrip(sensorSerial, bloodGlucoseValue, measurementDateTime);
+            }
 
         } catch (JSONException e) {
             sendToActivitiesLogView("Getting measurement failed: " + e.getMessage());
         }
+    }
+
+    private void forwardToXDrip(String sensorSerial, int bloodGlucoseValue, LocalDateTime measurementDateTime) {
+        Bundle bundle = new Bundle();
+        bundle.putString(xDripProperties.SENSOR_SERIAL.value, sensorSerial);
+
+        Intent intent = new Intent();
+        intent.setAction(xDripProperties.ACTION.value);
+        intent.putExtra(xDripProperties.GLUCOSE.value, Double.valueOf(bloodGlucoseValue));
+        intent.putExtra(xDripProperties.TIMESTAMP.value, measurementDateTime.atZone(ZoneId.of("Europe/Berlin")).toInstant().toEpochMilli());
+
+        intent.putExtra(xDripProperties.BLE_MANAGER.value, bundle);
+        getApplicationContext().sendBroadcast(intent);
+        sendToActivitiesLogView("Result forwarded to xDrip");
+    }
+
+    private LocalDateTime parseTimeStamp(String timestamp) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("M/d/y h:m:s a", Locale.US);
+        return LocalDateTime.parse(timestamp, dateTimeFormatter);
     }
 
     private void sendErrorToActivitiesLogViewAndNotification(VolleyError error) {
@@ -200,9 +232,7 @@ public class LinkUpConnectService extends Service {
     }
 
     @NonNull
-    private String formatTimeStampString(String timestamp) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("M/d/y h:m:s a", Locale.US);
-        LocalDateTime measurementDateTime = LocalDateTime.parse(timestamp, dateTimeFormatter);
+    private String formatTimeStampString(LocalDateTime measurementDateTime) {
         LocalDateTime currentDateTime = LocalDateTime.now();
         DateTimeFormatter notificationDateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm',' dd.MM.yyyy");
         String notificationDateTime = measurementDateTime.format(notificationDateTimeFormatter);
@@ -253,8 +283,8 @@ public class LinkUpConnectService extends Service {
 
     @NonNull
     private JsonObjectRequest createConnectionRequestChain(RequestQueue queue, SharedPreferences preferences) {
-        String url = preferences.getString(Properties.URL.name(), "");
-        String token = preferences.getString(Properties.TOKEN.name(), "");
+        String url = preferences.getString(Preferences.URL.name(), "");
+        String token = preferences.getString(Preferences.TOKEN.name(), "");
         return new JsonObjectRequest(
                 Request.Method.GET,
                 "https://" + url + "/llu/connections",
@@ -277,7 +307,7 @@ public class LinkUpConnectService extends Service {
             // todo: multiple connection ids not supported
             String connectionId = connectionData.getJSONObject(0).getString("patientId");
             SharedPreferences.Editor editor = preferences.edit();
-            editor.putString(Properties.CONNECTION_ID.name(), connectionId);
+            editor.putString(Preferences.CONNECTION_ID.name(), connectionId);
             editor.apply();
             JsonObjectRequest graphRequest = createGraphRequest(preferences);
             queue.add(graphRequest);
@@ -289,9 +319,9 @@ public class LinkUpConnectService extends Service {
     @NonNull
     private JsonObjectRequest createLoginRequestChain(RequestQueue queue, SharedPreferences preferences) {
 
-        String email = preferences.getString(Properties.EMAIL.name(), "");
-        String password = preferences.getString(Properties.PASSWORD.name(), "");
-        String url = preferences.getString(Properties.URL.name(), "");
+        String email = preferences.getString(Preferences.EMAIL.name(), "");
+        String password = preferences.getString(Preferences.PASSWORD.name(), "");
+        String url = preferences.getString(Preferences.URL.name(), "");
 
         JSONObject jsonRequest = null;
         try {
@@ -329,8 +359,8 @@ public class LinkUpConnectService extends Service {
 
     private void saveToken(SharedPreferences preferences, String token, long expiryDate) {
         SharedPreferences.Editor editor = preferences.edit();
-        editor.putString(Properties.TOKEN.name(), token);
-        editor.putLong(Properties.TOKEN_VALIDITY.name(), expiryDate);
+        editor.putString(Preferences.TOKEN.name(), token);
+        editor.putLong(Preferences.TOKEN_VALIDITY.name(), expiryDate);
         editor.apply();
     }
 

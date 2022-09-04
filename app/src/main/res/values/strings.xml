@@ -1,9 +1,11 @@
 <resources>
     <string name="app_name">LinkUpConnect</string>
-    <string name="email">E-Mail</string>
-    <string name="password">Password</string>
+    <string name="email">email</string>
+    <string name="password">password</string>
     <string name="default_url">api-de.libreview.io</string>
     <string name="default_intervall">60</string>
     <string name="debug">Debug</string>
     <string name="reset">Reset</string>
+    <string name="forward_to_xdrip">Forward to xDrip</string>
+    <string name="notification_enabled">Permanent notification</string>
 </resources>
