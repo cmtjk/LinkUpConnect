@@ -1,4 +1,4 @@
-package de.cmtjk.lluclient;
+package de.cmtjk.linkupconnect;
 
 import static android.app.PendingIntent.FLAG_IMMUTABLE;
 
@@ -35,14 +35,14 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class LLUClientService extends Service {
+public class LinkUpConnectService extends Service {
 
-    public static final String LOCAL_BROADCAST = LLUClientService.class.getName() + "LocationBroadcast";
+    public static final String LOCAL_BROADCAST = LinkUpConnectService.class.getName() + "LocationBroadcast";
     private static boolean SERVICE_IS_RUNNING = false;
     private static final int PERMANENT_NOTIFICATION_ID = 1;
     private final Timer timer = new Timer();
-    private final String channelId = "LLUClientForeGroundChannelId";
-    private final NotificationChannel notificationChannel = new NotificationChannel(channelId, "LLU Client Foreground Notification Channel", NotificationManager.IMPORTANCE_HIGH);
+    private final String channelId = "LinkUpConnectForeGroundChannelId";
+    private final NotificationChannel notificationChannel = new NotificationChannel(channelId, "LinkUpConnect Foreground Notification Channel", NotificationManager.IMPORTANCE_HIGH);
     private NotificationManager manager;
     private NotificationCompat.Builder notificationBuilder;
 
@@ -71,7 +71,7 @@ public class LLUClientService extends Service {
         SERVICE_IS_RUNNING = true;
         sendToActivitiesLogView("Service started");
 
-        SharedPreferences settings = getSharedPreferences("LLUClient", MODE_PRIVATE);
+        SharedPreferences settings = getSharedPreferences("LinkUpConnect", MODE_PRIVATE);
         int intervalInSeconds = Integer.parseInt(settings.getString(Properties.INTERVAL.name(), "60"));
 
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());

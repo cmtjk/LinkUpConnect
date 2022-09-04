@@ -1,4 +1,4 @@
-package de.cmtjk.lluclient;
+package de.cmtjk.linkupconnect;
 
 import org.junit.Test;
 

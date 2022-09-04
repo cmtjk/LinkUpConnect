@@ -1,8 +1,6 @@
-**⚠️This implementation does not provide any integration with xDrip or other apps. In only displays the current glucose level fetched from LibreView as permanent notification on the lock screen.**
+# LinkUpConnect
 
-# LLU Client
-
-[Download ⬇️](https://github.com/cmtjk/LLUClient/releases)
+[Download ⬇️](https://github.com/cmtjk/LinkUpConnect/releases)
 
 Displays your current blood glucose level fetched from LibreView as notification: status bar, lock screen, smartwatch (partially).
 

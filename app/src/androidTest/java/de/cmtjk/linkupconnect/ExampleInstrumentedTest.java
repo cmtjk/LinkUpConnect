@@ -1,4 +1,4 @@
-package de.cmtjk.lluclient;
+package de.cmtjk.linkupconnect;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("de.cmtjk.lluclient", appContext.getPackageName());
+        assertEquals("de.cmtjk.linkupconnect", appContext.getPackageName());
     }
 }

@@ -1,4 +1,4 @@
-package de.cmtjk.lluclient;
+package de.cmtjk.linkupconnect;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        SharedPreferences preferences = getSharedPreferences("LLUClient", MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences("LinkUpConnect", MODE_PRIVATE);
 
         fillInputFieldsWith(preferences);
         displayInformationDialog(preferences);
@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateApplicationStateIfServiceIsAlreadyRunning(SwitchMaterial sw) {
-        if (LLUClientService.isRunning()) {
+        if (LinkUpConnectService.isRunning()) {
             disableInputFields();
             sw.setChecked(true);
         }
@@ -103,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void configureSwitch(SharedPreferences preferences, SwitchMaterial sw) {
         sw.setOnCheckedChangeListener(((compoundButton, turnedOn) -> {
-            Intent intent = new Intent(this, LLUClientService.class);
+            Intent intent = new Intent(this, LinkUpConnectService.class);
             if (turnedOn) {
                 disableInputFields();
                 savePreferences(preferences);
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
                     private boolean debugEnabled() {
                         return ((CheckBox) findViewById(R.id.debug)).isChecked();
                     }
-                }, new IntentFilter(LLUClientService.LOCAL_BROADCAST)
+                }, new IntentFilter(LinkUpConnectService.LOCAL_BROADCAST)
         );
     }
 
