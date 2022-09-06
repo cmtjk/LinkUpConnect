@@ -176,7 +176,7 @@ public class LinkUpConnectService extends Service {
             }
 
             if (xDripEnabled) {
-                forwardToXDrip(sensorSerial, bloodGlucoseValue, measurementDateTime);
+                forwardToXDrip(sensorSerial, bloodGlucoseValueInMgDl, measurementDateTime);
             }
 
         } catch (JSONException e) {
@@ -184,13 +184,13 @@ public class LinkUpConnectService extends Service {
         }
     }
 
-    private void forwardToXDrip(String sensorSerial, double bloodGlucoseValue, LocalDateTime measurementDateTime) {
+    private void forwardToXDrip(String sensorSerial, int bloodGlucoseValueInMgPerDl, LocalDateTime measurementDateTime) {
         Bundle bundle = new Bundle();
         bundle.putString(xDripProperties.SENSOR_SERIAL.value, sensorSerial);
 
         Intent intent = new Intent();
         intent.setAction(xDripProperties.ACTION.value);
-        intent.putExtra(xDripProperties.GLUCOSE.value, bloodGlucoseValue);
+        intent.putExtra(xDripProperties.GLUCOSE.value, bloodGlucoseValueInMgPerDl);
         intent.putExtra(xDripProperties.TIMESTAMP.value, measurementDateTime.atZone(ZoneId.of("Europe/Berlin")).toInstant().toEpochMilli());
 
         intent.putExtra(xDripProperties.BLE_MANAGER.value, bundle);
