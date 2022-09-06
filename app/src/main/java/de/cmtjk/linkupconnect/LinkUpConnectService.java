@@ -158,12 +158,17 @@ public class LinkUpConnectService extends Service {
             sendToActivitiesLogView(glucoseMeasurement.toString(2));
 
             String sensorSerial = connection.isNull("sensor") ? "unknown" : connection.getString("sensor");
-            int bloodGlucoseValue = glucoseMeasurement.getInt("ValueInMgPerDl");
+
+            double bloodGlucoseValue = glucoseMeasurement.getDouble("Value");
+            int bloodGlucoseValueInMgDl = glucoseMeasurement.getInt("ValueInMgPerDl");
+            boolean valueIsInMgPerDl = bloodGlucoseValue == bloodGlucoseValueInMgDl;
+
             int trendArrow = glucoseMeasurement.getInt("TrendArrow");
+
             String timestamp = glucoseMeasurement.getString("Timestamp");
             LocalDateTime measurementDateTime = parseTimeStamp(timestamp);
 
-            String formattedBloodGlucoseValue = formatBloodGlucoseString(bloodGlucoseValue, trendArrow);
+            String formattedBloodGlucoseValue = formatBloodGlucoseString(bloodGlucoseValue, valueIsInMgPerDl, trendArrow);
             String formattedTimeStamp = formatTimeStampString(measurementDateTime);
 
             if (notificationEnabled) {
@@ -179,13 +184,13 @@ public class LinkUpConnectService extends Service {
         }
     }
 
-    private void forwardToXDrip(String sensorSerial, int bloodGlucoseValue, LocalDateTime measurementDateTime) {
+    private void forwardToXDrip(String sensorSerial, double bloodGlucoseValue, LocalDateTime measurementDateTime) {
         Bundle bundle = new Bundle();
         bundle.putString(xDripProperties.SENSOR_SERIAL.value, sensorSerial);
 
         Intent intent = new Intent();
         intent.setAction(xDripProperties.ACTION.value);
-        intent.putExtra(xDripProperties.GLUCOSE.value, Double.valueOf(bloodGlucoseValue));
+        intent.putExtra(xDripProperties.GLUCOSE.value, bloodGlucoseValue);
         intent.putExtra(xDripProperties.TIMESTAMP.value, measurementDateTime.atZone(ZoneId.of("Europe/Berlin")).toInstant().toEpochMilli());
 
         intent.putExtra(xDripProperties.BLE_MANAGER.value, bundle);
@@ -245,7 +250,7 @@ public class LinkUpConnectService extends Service {
     }
 
     @NonNull
-    private String formatBloodGlucoseString(int bloodGlucoseValue, int trendArrow) {
+    private String formatBloodGlucoseString(double bloodGlucoseValue, boolean valueIsInMgPerDl, int trendArrow) {
         String arrow = "";
         switch (trendArrow) {
             case 1:
@@ -264,7 +269,11 @@ public class LinkUpConnectService extends Service {
                 arrow = "⬆";
                 break;
         }
-        return String.format(Locale.GERMANY, "%s %d mg/dl", arrow, bloodGlucoseValue);
+        if (valueIsInMgPerDl) {
+            return String.format(Locale.GERMANY, "%s %.0f mg/dl", arrow, bloodGlucoseValue);
+        } else {
+            return String.format(Locale.GERMANY, "%s %.1f mmol/l", arrow, bloodGlucoseValue);
+        }
     }
 
     @NonNull

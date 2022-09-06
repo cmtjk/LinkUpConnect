@@ -13,8 +13,6 @@ Displays your current blood glucose level fetched from LibreView as notification
 
 Note: It seems you have to install and log into the LibreLinkUp app once and accept the invitation but you can uninstall it afterwards. Otherwise no data is sent.
 
-Want mmol/l? Enable debug and tell me how your payload looks like. Then I can implement it.
-
 ## How it works
 The application directly queries the LibreView API every 60 seconds (default) to get current blood glucose levels. Hence it requires an internet connection to work.
 
