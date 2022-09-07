@@ -29,11 +29,12 @@ import org.json.JSONObject;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -105,9 +106,9 @@ public class LinkUpConnectService extends Service {
             private String obfuscateConnectionId(String connectionId) {
                 String[] connectionIdParts = connectionId.split("-");
                 if (connectionIdParts.length > 1) {
-                    return connectionIdParts[0] + "-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
+                    return connectionIdParts[0] + "-****-****-****-************";
                 }
-                return "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
+                return "********-****-****-****-************";
             }
         }, 0, intervalInSeconds * 1000L);
 
@@ -153,11 +154,12 @@ public class LinkUpConnectService extends Service {
 
     private void handleGraphResponse(JSONObject response, boolean xDripEnabled, boolean notificationEnabled) {
         try {
-            JSONObject connection = response.getJSONObject("data").getJSONObject("connection");
+            JSONObject data = response.getJSONObject("data");
+            JSONObject connection = data.getJSONObject("connection");
             JSONObject glucoseMeasurement = connection.getJSONObject("glucoseMeasurement");
             sendToActivitiesLogView(glucoseMeasurement.toString(2));
 
-            String sensorSerial = connection.isNull("sensor") ? "unknown" : connection.getString("sensor");
+            String sensorSerial = data.getJSONArray("activeSensors").getJSONObject(0).getJSONObject("sensor").getString("sn");
 
             double bloodGlucoseValue = glucoseMeasurement.getDouble("Value");
             int bloodGlucoseValueInMgDl = glucoseMeasurement.getInt("ValueInMgPerDl");
@@ -188,14 +190,26 @@ public class LinkUpConnectService extends Service {
         Bundle bundle = new Bundle();
         bundle.putString(xDripProperties.SENSOR_SERIAL.value, sensorSerial);
 
+        double rawXDripBloodGlucoseValueInMgPerDl = (double) bloodGlucoseValueInMgPerDl;
+        long rawXDripMeasurementTimestamp = measurementDateTime.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli();
+
         Intent intent = new Intent();
         intent.setAction(xDripProperties.ACTION.value);
-        intent.putExtra(xDripProperties.GLUCOSE.value, bloodGlucoseValueInMgPerDl);
-        intent.putExtra(xDripProperties.TIMESTAMP.value, measurementDateTime.atZone(ZoneId.of("Europe/Berlin")).toInstant().toEpochMilli());
+        intent.putExtra(xDripProperties.GLUCOSE.value, rawXDripBloodGlucoseValueInMgPerDl);
+        intent.putExtra(xDripProperties.TIMESTAMP.value, rawXDripMeasurementTimestamp);
 
         intent.putExtra(xDripProperties.BLE_MANAGER.value, bundle);
         getApplicationContext().sendBroadcast(intent);
-        sendToActivitiesLogView("Result forwarded to xDrip");
+        sendToActivitiesLogView(String.format(Locale.getDefault(), "Result forwarded to xDrip: %s, %f, %d", obfuscateSensorSerial(sensorSerial), rawXDripBloodGlucoseValueInMgPerDl, rawXDripMeasurementTimestamp));
+    }
+
+    private String obfuscateSensorSerial(String sensorSerial) {
+        int length = sensorSerial.length();
+        if (length >= 2) {
+            String sensorSerialFirstHalf = sensorSerial.substring(0, length / 2);
+            return sensorSerialFirstHalf + String.join("", Collections.nCopies(length / 2, "*"));
+        }
+        return "**********";
     }
 
     private LocalDateTime parseTimeStamp(String timestamp) {
@@ -246,7 +260,7 @@ public class LinkUpConnectService extends Service {
             icon = "❗";
         }
         Duration duration = Duration.between(measurementDateTime, currentDateTime);
-        return String.format(Locale.GERMANY, "%s⏳ %sm ago (%s)", icon, duration.toMinutes(), notificationDateTime);
+        return String.format(Locale.getDefault(), "%s⏳ %sm ago (%s)", icon, duration.toMinutes(), notificationDateTime);
     }
 
     @NonNull
@@ -270,9 +284,9 @@ public class LinkUpConnectService extends Service {
                 break;
         }
         if (valueIsInMgPerDl) {
-            return String.format(Locale.GERMANY, "%s %.0f mg/dl", arrow, bloodGlucoseValue);
+            return String.format(Locale.getDefault(), "%s %.0f mg/dl", arrow, bloodGlucoseValue);
         } else {
-            return String.format(Locale.GERMANY, "%s %.1f mmol/l", arrow, bloodGlucoseValue);
+            return String.format(Locale.getDefault(), "%s %.1f mmol/l", arrow, bloodGlucoseValue);
         }
     }
 
