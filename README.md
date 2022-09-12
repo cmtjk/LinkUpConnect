@@ -4,6 +4,12 @@
 
 Displays your current blood glucose level fetched from LibreView as notification in status bar, lock screen, smartwatch (partially), and forward values to [xDrip+](https://jamorham.github.io/#xdrip-plus).
 
+**Info:** LinkUpConnect is not suitable to transfer historical data, e.g. when no internet connection was available or LinkUpConnect was not running, to xDrip+ afterwards.
+While historical data is available, xDrip+'s [LibreReceiver](https://github.com/NightscoutFoundation/xDrip/blob/master/app/src/main/java/com/eveningoutpost/dexdrip/LibreReceiver.java#L45) is not designed for this purpose and will distort the result when a lot of values are processed within a short period of time due to value smoothing and calibration (as far as I uderstand).
+
+Could you implement a xDrip+ source for this purpose? Sure I could create a PR but people looking for this feature better wait for xDrip+'s upcoming [Web Follower](https://xdrip.readthedocs.io/en/latest/install/webfollower/) (you can already use it in nightly).
+
+
 ## Attributions
 - Special thanks to [Nechoj](https://insulinclub.de/core/index.php?user/46518-nechoj/) for the inspiration
 - ![](img/blood_sugar_icon.png)[Diabetes icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/diabetes "diabetes icons")
