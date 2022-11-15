@@ -297,7 +297,7 @@ public class LinkUpConnectService extends Service {
         header.put("User-Agent", "FreeStyle LibreLink Up Uploader");
         header.put("Content-Type", "application/json");
         header.put("version", "4.1.1");
-        header.put("Accept-Encoding", "gzip, deflate, br");
+        header.put("Accept-Encoding", "identity");
         header.put("Connection", "keep-alive");
         header.put("Pragma", "no-cache");
         header.put("Cache-Control", "no-cache");
