@@ -47,7 +47,7 @@ If you use xDrip+ for notifications, you can disable LinkUpConnect's notificatio
 ![](img/notification_and_xdrip.png)
 
 ## Why it sometimes doesn't work
-This is an very opinionated implementation with basic Android knowledge and it's only really tested on my Honor Play and Huawei Watch GT 3.
+This is an very opinionated implementation with basic Android knowledge and it's only really tested on my Samsung Galaxy A53 (Android 12) and Huawei Watch GT 3.
 
 This application has bugs. Expect crashes. But I use it on a daily basis and it works sufficiently. If there's something you want to be implemented or improved create an issue, PR, fork, or contact me.
 
@@ -58,5 +58,4 @@ If something doesn't work remember to enable debug logging. Unfortunately, it's 
 
 ## Known issues
 - If your LibreView account is connected to more than one patient only one is shown. This is sufficient for me since I only need notifications about myself.
-- When forwarding values to xDrip+ the timestamp is formatted with timezone Europe/Berlin. This will be improved in the future.
 - And maybe more for users with a different setup. Contact me. Maybe I can help.
