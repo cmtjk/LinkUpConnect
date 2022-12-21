@@ -156,19 +156,40 @@ public class MainActivity extends AppCompatActivity {
                 new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
-                        if (debugEnabled()) {
+                        if (debugEnabled() && isLogMessage(intent)) {
                             logTextView.append("[" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")) + "] ");
                             logTextView.append(intent.getStringExtra("LOG"));
                             logTextView.append("\n");
                             logScrollView.fullScroll(ScrollView.FOCUS_DOWN);
                         }
-                    }
 
+                        if (isAlert(intent)) {
+                            showAlert(intent.getStringExtra("ALERT"));
+                        }
+
+                    }
                     private boolean debugEnabled() {
                         return ((CheckBox) findViewById(R.id.debug)).isChecked();
                     }
+
+                    private boolean isLogMessage(Intent intent) {
+                        return intent.getStringExtra("LOG") != null && !intent.getStringExtra("LOG").isEmpty();
+                    }
+
+                    private boolean isAlert(Intent intent) {
+                        return intent.getStringExtra("ALERT") != null && !intent.getStringExtra("ALERT").isEmpty();
+                    }
                 }, new IntentFilter(LinkUpConnectService.LOCAL_BROADCAST)
         );
+    }
+
+    private void showAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("ℹ️ Information")
+                .setMessage(message)
+                .setPositiveButton("Ok", (dialog, id) -> {});
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void configureDebugCheckBox(TextView logTextView) {

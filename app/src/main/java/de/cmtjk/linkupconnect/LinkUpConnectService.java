@@ -67,6 +67,23 @@ public class LinkUpConnectService extends Service {
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
     }
 
+    private void showAlert(String message) {
+        Intent intent = new Intent(LOCAL_BROADCAST);
+        intent.putExtra("ALERT", message);
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
+    }
+
+    private void showSetUpAlert()  {
+        showAlert("No valid data received.\n\n" +
+                "Do you have connected your app?\n" +
+                "Libre 3/LibreLink ➡ Connected Apps ➡ LibreLinkUp\n\n" +
+                "Do you have accepted your connection in LibreLinkUp app?\n" +
+                "LibreLinkUp ➡ accept connection\n\n" +
+                "Do you have accepted the TOS?\n" +
+                "Libre 3/LibreLink ➡ accept TOS\n\n" +
+                "If you just set up your connection please wait a moment.");
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         setUpNotification();
@@ -183,6 +200,7 @@ public class LinkUpConnectService extends Service {
 
         } catch (JSONException e) {
             sendToActivitiesLogView("Getting measurement failed: " + e.getMessage());
+            showSetUpAlert();
         }
     }
 
@@ -336,6 +354,7 @@ public class LinkUpConnectService extends Service {
             queue.add(graphRequest);
         } catch (JSONException e) {
             sendToActivitiesLogView("Getting connections failed: " + e.getMessage());
+            showSetUpAlert();
         }
     }
 
