@@ -314,7 +314,7 @@ public class LinkUpConnectService extends Service {
         header.put("product", "llu.ios");
         header.put("User-Agent", "FreeStyle LibreLink Up Uploader");
         header.put("Content-Type", "application/json");
-        header.put("version", "4.1.1");
+        header.put("version", "4.7.0");
         header.put("Accept-Encoding", "identity");
         header.put("Connection", "keep-alive");
         header.put("Pragma", "no-cache");
