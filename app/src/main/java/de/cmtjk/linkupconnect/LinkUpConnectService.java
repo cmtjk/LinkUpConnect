@@ -27,6 +27,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,7 +77,7 @@ public class LinkUpConnectService extends Service {
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(intent);
     }
 
-    private void showSetUpAlert()  {
+    private void showSetUpAlert() {
         showAlert("No valid data received.\n\n" +
                 "Do you have connected your app?\n" +
                 "Libre 3/LibreLink ➡ Connected Apps ➡ LibreLinkUp\n\n" +
@@ -148,6 +152,7 @@ public class LinkUpConnectService extends Service {
     @NonNull
     private JsonObjectRequest createGraphRequest(SharedPreferences settings) {
         String url = settings.getString(Preferences.URL.name(), "");
+        String accountId = settings.getString(Preferences.ACCOUNT_ID.name(), "");
         String token = settings.getString(Preferences.TOKEN.name(), "");
         String connectionId = settings.getString(Preferences.CONNECTION_ID.name(), "");
         boolean notificationEnabled = settings.getBoolean(Preferences.PERMANENT_NOTIFICATION_ENABLED.name(), true);
@@ -163,7 +168,8 @@ public class LinkUpConnectService extends Service {
             @Override
             public Map<String, String> getHeaders() {
                 Map<String, String> header = getDefaultHeaders();
-                header.put("authorization", "Bearer " + token);
+                header.put("Account-Id", accountId);
+                header.put("Authorization", "Bearer " + token);
                 return header;
             }
         };
@@ -311,10 +317,10 @@ public class LinkUpConnectService extends Service {
     @NonNull
     private Map<String, String> getDefaultHeaders() {
         Map<String, String> header = new HashMap<>();
-        header.put("product", "llu.ios");
+        header.put("Product", "llu.ios");
         header.put("User-Agent", "FreeStyle LibreLink Up Uploader");
         header.put("Content-Type", "application/json");
-        header.put("version", "4.7.0");
+        header.put("Version", "4.12.0");
         header.put("Accept-Encoding", "identity");
         header.put("Connection", "keep-alive");
         header.put("Pragma", "no-cache");
@@ -325,6 +331,7 @@ public class LinkUpConnectService extends Service {
     @NonNull
     private JsonObjectRequest createConnectionRequestChain(RequestQueue queue, SharedPreferences preferences) {
         String url = preferences.getString(Preferences.URL.name(), "");
+        String accountId = preferences.getString(Preferences.ACCOUNT_ID.name(), "");
         String token = preferences.getString(Preferences.TOKEN.name(), "");
         return new JsonObjectRequest(
                 Request.Method.GET,
@@ -335,9 +342,10 @@ public class LinkUpConnectService extends Service {
         ) {
             @Override
             public Map<String, String> getHeaders() {
-                Map<String, String> defaultHeaders = getDefaultHeaders();
-                defaultHeaders.put("authorization", "Bearer " + token);
-                return defaultHeaders;
+                Map<String, String> headers = getDefaultHeaders();
+                headers.put("Account-Id", accountId);
+                headers.put("Authorization", "Bearer " + token);
+                return headers;
             }
         };
     }
@@ -388,19 +396,30 @@ public class LinkUpConnectService extends Service {
     private void handleLoginResponse(JSONObject response, RequestQueue queue, SharedPreferences preferences) {
         try {
             JSONObject data = response.getJSONObject("data");
+            JSONObject user = data.getJSONObject("user");
             JSONObject authTicket = data.getJSONObject("authTicket");
+            String userId = user.getString("id");
+            String accountId = createAccountId(userId);
             String token = authTicket.getString("token");
             long expiryDate = authTicket.getLong("expires");
-            saveToken(preferences, token, expiryDate);
+            saveCredentials(preferences, accountId, token, expiryDate);
             JsonObjectRequest connectionRequest = createConnectionRequestChain(queue, preferences);
             queue.add(connectionRequest);
-        } catch (JSONException e) {
+        } catch (JSONException | NoSuchAlgorithmException e) {
             sendToActivitiesLogView("Login failed: " + response);
         }
     }
 
-    private void saveToken(SharedPreferences preferences, String token, long expiryDate) {
+    private String createAccountId(String userId) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(userId.getBytes(StandardCharsets.UTF_8));
+        BigInteger hashAsInt = new BigInteger(1, hash);
+        return hashAsInt.toString(16);
+    }
+
+    private void saveCredentials(SharedPreferences preferences, String accountId, String token, long expiryDate) {
         SharedPreferences.Editor editor = preferences.edit();
+        editor.putString(Preferences.ACCOUNT_ID.name(), accountId);
         editor.putString(Preferences.TOKEN.name(), token);
         editor.putLong(Preferences.TOKEN_VALIDITY.name(), expiryDate);
         editor.apply();
