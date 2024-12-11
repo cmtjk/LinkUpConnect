@@ -5,7 +5,7 @@ public enum xDripProperties {
     GLUCOSE("glucose"),
     TIMESTAMP("timestamp"),
     SENSOR_SERIAL("sensorSerial"),
-    BLE_MANAGER("bleManager") ;
+    BLE_MANAGER("bleManager");
 
     final String value;
 

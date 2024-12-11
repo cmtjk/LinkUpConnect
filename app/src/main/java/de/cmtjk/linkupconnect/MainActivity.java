@@ -1,10 +1,12 @@
 package de.cmtjk.linkupconnect;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -13,6 +15,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -28,6 +31,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         findViewById(R.id.notification_enabled).setEnabled(false);
+
+        if (Build.VERSION.SDK_INT > 32) {
+            if (!shouldShowRequestPermissionRationale("112")) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                        112);
+            }
+        }
 
         SharedPreferences preferences = getSharedPreferences("LinkUpConnect", MODE_PRIVATE);
 
@@ -50,7 +61,8 @@ public class MainActivity extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("ℹ️ Information")
                         .setMessage("Choose 'Libre2 (patched App)' as source in xDrip.")
-                        .setPositiveButton("Ok", (dialog, id) -> {});
+                        .setPositiveButton("Ok", (dialog, id) -> {
+                        });
                 AlertDialog dialog = builder.create();
                 dialog.show();
             }
@@ -168,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                     }
+
                     private boolean debugEnabled() {
                         return ((CheckBox) findViewById(R.id.debug)).isChecked();
                     }
@@ -187,7 +200,8 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("ℹ️ Information")
                 .setMessage(message)
-                .setPositiveButton("Ok", (dialog, id) -> {});
+                .setPositiveButton("Ok", (dialog, id) -> {
+                });
         AlertDialog dialog = builder.create();
         dialog.show();
     }

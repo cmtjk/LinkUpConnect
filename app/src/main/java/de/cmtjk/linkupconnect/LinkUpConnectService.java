@@ -9,6 +9,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ServiceInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 
@@ -271,7 +273,16 @@ public class LinkUpConnectService extends Service {
         // watch
         manager.notify(PERMANENT_NOTIFICATION_ID, notification);
         // phone
-        startForeground(PERMANENT_NOTIFICATION_ID, notification);
+        if (Build.VERSION.SDK_INT >= 34) {
+            startForeground(
+                    PERMANENT_NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+        } else {
+            startForeground(
+                    PERMANENT_NOTIFICATION_ID,
+                    notification);
+        }
     }
 
     @NonNull
