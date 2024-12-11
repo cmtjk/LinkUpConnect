@@ -27,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        findViewById(R.id.notification_enabled).setEnabled(false);
+
         SharedPreferences preferences = getSharedPreferences("LinkUpConnect", MODE_PRIVATE);
 
         fillInputFieldsWith(preferences);
@@ -113,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.password).setEnabled(false);
         findViewById(R.id.url).setEnabled(false);
         findViewById(R.id.intervall).setEnabled(false);
-        findViewById(R.id.notification_enabled).setEnabled(false);
         findViewById(R.id.forward_to_xdrip).setEnabled(false);
     }
 
@@ -147,7 +148,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.password).setEnabled(true);
         findViewById(R.id.url).setEnabled(true);
         findViewById(R.id.intervall).setEnabled(true);
-        findViewById(R.id.notification_enabled).setEnabled(true);
         findViewById(R.id.forward_to_xdrip).setEnabled(true);
     }
 
