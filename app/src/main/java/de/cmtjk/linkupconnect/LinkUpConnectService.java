@@ -101,7 +101,7 @@ public class LinkUpConnectService extends Service {
         int intervalInSeconds = Integer.parseInt(settings.getString(Preferences.INTERVAL.name(), "60"));
 
         RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-        timer.scheduleAtFixedRate(new TimerTask() {
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
 
@@ -331,7 +331,7 @@ public class LinkUpConnectService extends Service {
         header.put("Product", "llu.ios");
         header.put("User-Agent", "FreeStyle LibreLink Up Uploader");
         header.put("Content-Type", "application/json");
-        header.put("Version", "4.12.0");
+        header.put("Version", "4.16.0");
         header.put("Accept-Encoding", "identity");
         header.put("Connection", "keep-alive");
         header.put("Pragma", "no-cache");
