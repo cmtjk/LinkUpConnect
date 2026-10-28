@@ -1,3 +1,9 @@
+**⚠️ This repository is no longer actively maintained! ⚠️**
+
+I've switched from FreeStyle Libre to Dexcom and have no longer access to Libre sensors.
+
+---
+
 # LinkUpConnect
 
 [Download ⬇️](https://github.com/cmtjk/LinkUpConnect/releases)
